@@ -26,7 +26,7 @@ class AuthViewModel : ViewModel() {
                         state = AuthState.Success("You signed in successfully.")
                         AuthPreferences.setUserID(task.result.user?.uid)
                     } else {
-                        state = AuthState.Error("Something went wrong")
+                        state = AuthState.Error(task.exception?.message.toString())
                     }
                 }
         }
@@ -65,6 +65,8 @@ class AuthViewModel : ViewModel() {
                                     state = AuthState.Error("Something went wrong.")
                                 }
                         }
+                    } else {
+                        state = AuthState.Error(task.exception?.message.toString())
                     }
                 }
         }

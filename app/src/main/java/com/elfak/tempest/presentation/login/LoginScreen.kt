@@ -1,5 +1,6 @@
 package com.elfak.tempest.presentation.login
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.presentation.shared.components.Button
+import com.elfak.tempest.presentation.shared.components.ErrorBox
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
 import com.elfak.tempest.presentation.shared.validators.Validators
@@ -53,7 +55,13 @@ fun LoginScreen(navController: NavController) {
             title = "Welcome back!",
             description = "Weave Your Fiber Network Fabric with Ease"
         )
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(28.dp))
+        AnimatedVisibility(authState is AuthViewModel.AuthState.Error) {
+            if (authState is AuthViewModel.AuthState.Error) {
+                ErrorBox(authState.message)
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
         Column {
             Input(value = email, label = "Email") {
                 email = it
