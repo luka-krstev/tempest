@@ -26,9 +26,10 @@ import com.elfak.tempest.presentation.shared.components.Title
 import com.elfak.tempest.presentation.shared.validators.Validators
 import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 
-fun validate(username: String, name: String, email: String, password: String): Boolean {
-    if (!Validators.isLengthBetween(password, 4, 64)) return false
-    if (!Validators.isLengthBetween(password, 4, 64)) return false
+fun validate(username: String, name: String, phone: String, email: String, password: String): Boolean {
+    if (!Validators.isLengthBetween(username, 4, 64)) return false
+    if (!Validators.isPhoneNumber(phone)) return false
+    if (!Validators.isLengthBetween(name, 4, 64)) return false
     if (!Validators.isEmail(email)) return false
     if (!Validators.isLengthBetween(password, 8, 32)) return false
 
@@ -41,8 +42,9 @@ fun RegisterScreen(navController: NavController) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
     val valid by remember {
-        derivedStateOf { validate(username, name, email, password) }
+        derivedStateOf { validate(username, name, phone, email, password) }
     }
 
     val authViewModel = viewModel<AuthViewModel>()
@@ -63,15 +65,19 @@ fun RegisterScreen(navController: NavController) {
             Input(value = username, label = "Username") {
                 username = it
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Input(value = name, label = "Full name") {
                 name = it
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            Input(value = phone, label = "Phone") {
+                phone = it
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Input(value = email, label = "Email") {
                 email = it
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Input(value = password, label = "Password", type = "password") {
                 password = it
             }
@@ -83,7 +89,7 @@ fun RegisterScreen(navController: NavController) {
                 disabled = !valid,
                 loading = authState == AuthViewModel.AuthState.Loading,
                 onClick = {
-                    authViewModel.signUp(email, password, name, username)
+                    authViewModel.signUp(email, password, phone, name, username)
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))

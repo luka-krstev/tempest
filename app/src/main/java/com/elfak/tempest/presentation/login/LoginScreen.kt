@@ -58,7 +58,7 @@ fun LoginScreen(navController: NavController) {
             Input(value = email, label = "Email") {
                 email = it
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Input(value = password, label = "Password", type = "password") {
                 password = it
             }

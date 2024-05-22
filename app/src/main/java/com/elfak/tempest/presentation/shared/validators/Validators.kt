@@ -8,4 +8,8 @@ object Validators {
     fun isLengthBetween(text: String, lower: Int, upper: Int): Boolean {
         return text.length in (lower)..<upper
     }
+
+    fun isPhoneNumber(text: String): Boolean {
+        return text.isNotEmpty() && android.util.Patterns.PHONE.matcher(text).matches();
+    }
 }

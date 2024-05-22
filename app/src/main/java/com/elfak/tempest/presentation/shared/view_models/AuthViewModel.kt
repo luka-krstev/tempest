@@ -35,6 +35,7 @@ class AuthViewModel : ViewModel() {
     fun signUp(
         email: String,
         password: String,
+        phone: String,
         name: String,
         username: String
     ) {
@@ -49,6 +50,7 @@ class AuthViewModel : ViewModel() {
                             "name" to name,
                             "username" to username,
                             "avatar" to null,
+                            "phone" to phone
                         )
 
                         if (user == null) {
