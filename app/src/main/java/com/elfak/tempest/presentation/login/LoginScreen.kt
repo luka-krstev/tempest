@@ -33,8 +33,6 @@ fun LoginScreen(navController: NavController) {
     val authViewModel = viewModel<AuthViewModel>()
     val authState = authViewModel.state
 
-    val context = LocalContext.current
-
     Column(
         modifier = Modifier
             .padding(24.dp)

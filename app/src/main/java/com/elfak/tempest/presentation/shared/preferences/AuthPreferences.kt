@@ -16,6 +16,10 @@ object AuthPreferences {
         return sharedPreferences.getString(KEY, null)
     }
 
+    fun clearUserData() {
+        sharedPreferences.edit().clear().apply()
+    }
+
     fun setUserID(userId: String?) {
         sharedPreferences.edit().putString(KEY, userId).apply()
     }

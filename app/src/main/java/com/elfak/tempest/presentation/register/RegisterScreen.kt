@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -69,6 +70,15 @@ fun RegisterScreen(navController: NavController) {
             Button(text = "Already have an Account?", type="secondary", onClick = {
                 navController.navigate(Screen.Login.route)
             })
+        }
+    }
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthViewModel.AuthState.Success -> {
+                navController.navigate(Screen.Home.route)
+            }
+            else -> { }
         }
     }
 }

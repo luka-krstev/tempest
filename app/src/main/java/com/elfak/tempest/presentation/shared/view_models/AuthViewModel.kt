@@ -45,6 +45,12 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun signOut(onSignOut: () -> Unit) {
+        auth.signOut()
+        AuthPreferences.clearUserData()
+        onSignOut()
+    }
+
     sealed class AuthState {
         data object Idle : AuthState()
         data object Loading : AuthState()
