@@ -1,28 +1,26 @@
 package com.elfak.tempest.presentation.register
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.presentation.shared.components.Button
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -30,6 +28,9 @@ fun RegisterScreen(navController: NavController) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+
+    val authViewModel = viewModel<AuthViewModel>()
+    val authState = authViewModel.state
 
     Column(
         modifier = Modifier
@@ -61,9 +62,13 @@ fun RegisterScreen(navController: NavController) {
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Column {
-            Button(text = "Register", onClick = { })
+            Button(text = "Register", onClick = {
+                authViewModel.signUp(email, password)
+            })
             Spacer(modifier = Modifier.height(8.dp))
-            Button(text = "Already have an Account?", type="secondary", onClick = { })
+            Button(text = "Already have an Account?", type="secondary", onClick = {
+                navController.navigate(Screen.Login.route)
+            })
         }
     }
 }
