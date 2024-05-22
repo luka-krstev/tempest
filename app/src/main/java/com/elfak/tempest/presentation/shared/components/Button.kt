@@ -2,11 +2,16 @@ package com.elfak.tempest.presentation.shared.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -17,7 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Button(text: String, type: String = "primary", onClick: () -> Unit) {
+fun Button(
+    text: String,
+    type: String = "primary",
+    loading: Boolean = false,
+    onClick: () -> Unit
+) {
     var backgroundStyling = Modifier.fillMaxWidth()
     var textStyling = TextStyle(
         color = Color.White,
@@ -44,11 +54,30 @@ fun Button(text: String, type: String = "primary", onClick: () -> Unit) {
             fontSize = 16.sp
         )
     }
-    backgroundStyling = backgroundStyling.padding(12.dp).clickable(onClick = onClick)
+    backgroundStyling = backgroundStyling
+        .padding(12.dp)
+        .clickable(onClick = {
+            if (!loading) {
+                onClick()
+            }
+        })
 
-    Text(
-        style = textStyling,
+    Box(
         modifier = backgroundStyling,
-        text = text
-    )
+        contentAlignment = Alignment.Center
+    ) {
+        if (loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.width(20.dp).height(20.dp),
+                strokeWidth = 3.dp,
+                color = Color.White,
+                trackColor = Color(0xFFDEDEDE),
+            )
+        } else {
+            Text(
+                style = textStyling,
+                text = text
+            )
+        }
+    }
 }

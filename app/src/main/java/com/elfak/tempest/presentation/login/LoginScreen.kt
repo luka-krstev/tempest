@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -55,9 +56,13 @@ fun LoginScreen(navController: NavController) {
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Column {
-            Button(text = "Login", onClick = {
+            Button(
+                text = "Login",
+                loading = authState == AuthViewModel.AuthState.Loading,
+                onClick = {
                 authViewModel.signIn(email, password)
-            })
+                }
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Button(text = "Don't have an Account?", type="secondary", onClick = {
                 navController.navigate(Screen.Register.route)
