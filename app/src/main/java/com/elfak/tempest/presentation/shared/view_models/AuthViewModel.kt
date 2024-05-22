@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 class AuthViewModel : ViewModel() {
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
+    private val firestore: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
 
     var state: AuthState by mutableStateOf(AuthState.Idle)
         private set
@@ -30,16 +32,37 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun signUp(email: String, password: String) {
+    fun signUp(
+        email: String,
+        password: String,
+        name: String,
+        username: String
+    ) {
         state = AuthState.Loading
         viewModelScope.launch {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener {task ->
                     if (task.isSuccessful) {
-                        state = AuthState.Success("You signed up successfully.")
-                        AuthPreferences.setUserID(task.result.user?.uid)
-                    } else {
-                        state = AuthState.Error("Something went wrong.")
+                        val user = task.result.user
+                        val payload = mapOf(
+                            "email" to email,
+                            "name" to name,
+                            "username" to username,
+                            "avatar" to null,
+                        )
+
+                        if (user == null) {
+                            state = AuthState.Error("Something went wrong.")
+                        } else {
+                            firestore.collection("users").document(user.uid).set(payload)
+                                .addOnSuccessListener {
+                                    state = AuthState.Success("You signed up successfully.")
+                                    AuthPreferences.setUserID(user.uid)
+                                }
+                                .addOnFailureListener {
+                                    state = AuthState.Error("Something went wrong.")
+                                }
+                        }
                     }
                 }
         }

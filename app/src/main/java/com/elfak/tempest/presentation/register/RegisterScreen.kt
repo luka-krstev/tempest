@@ -64,7 +64,7 @@ fun RegisterScreen(navController: NavController) {
         Spacer(modifier = Modifier.weight(1.0f))
         Column {
             Button(text = "Register", onClick = {
-                authViewModel.signUp(email, password)
+                authViewModel.signUp(email, password, name, username)
             })
             Spacer(modifier = Modifier.height(8.dp))
             Button(text = "Already have an Account?", type="secondary", onClick = {
