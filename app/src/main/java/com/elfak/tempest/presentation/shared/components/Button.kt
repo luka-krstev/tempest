@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -26,6 +27,7 @@ fun Button(
     text: String,
     type: String = "primary",
     loading: Boolean = false,
+    disabled: Boolean = false,
     onClick: () -> Unit
 ) {
     var backgroundStyling = Modifier.fillMaxWidth()
@@ -54,10 +56,15 @@ fun Button(
             fontSize = 16.sp
         )
     }
+
+    if (disabled) {
+        backgroundStyling = backgroundStyling.alpha(0.6f)
+    }
+
     backgroundStyling = backgroundStyling
         .padding(12.dp)
         .clickable(onClick = {
-            if (!loading) {
+            if (!loading && !disabled) {
                 onClick()
             }
         })

@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -21,7 +23,17 @@ import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.presentation.shared.components.Button
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.presentation.shared.validators.Validators
 import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
+
+fun validate(username: String, name: String, email: String, password: String): Boolean {
+    if (!Validators.isLengthBetween(password, 4, 64)) return false
+    if (!Validators.isLengthBetween(password, 4, 64)) return false
+    if (!Validators.isEmail(email)) return false
+    if (!Validators.isLengthBetween(password, 8, 32)) return false
+
+    return true
+}
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -29,6 +41,9 @@ fun RegisterScreen(navController: NavController) {
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    val valid by remember {
+        derivedStateOf { validate(username, name, email, password) }
+    }
 
     val authViewModel = viewModel<AuthViewModel>()
     val authState = authViewModel.state
@@ -65,6 +80,7 @@ fun RegisterScreen(navController: NavController) {
         Column {
             Button(
                 text = "Register",
+                disabled = !valid,
                 loading = authState == AuthViewModel.AuthState.Loading,
                 onClick = {
                     authViewModel.signUp(email, password, name, username)
