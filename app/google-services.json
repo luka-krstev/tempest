@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "308576069086",
+    "project_id": "tempest-d52c8",
+    "storage_bucket": "tempest-d52c8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308576069086:android:f4754250edbb77b7ee294f",
+        "android_client_info": {
+          "package_name": "com.elfak.tempest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsN5dKegM_QpiDEAhU8Hx7PLcWlHgoit0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
