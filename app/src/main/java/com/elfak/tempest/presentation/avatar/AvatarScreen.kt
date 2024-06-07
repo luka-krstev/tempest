@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,11 +49,12 @@ import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 @Composable
 fun AvatarScreen(navController: NavController) {
     val authViewModel = viewModel<AuthViewModel>()
+    val avatarState = authViewModel.avatar
+
     var selectedImageUri by remember { mutableStateOf<Uri?>(
         Uri.parse("android.resource://com.elfak.tempest/" + R.drawable.placeholder))
     }
     var selected by remember { mutableStateOf<Boolean>(false) }
-    var error by remember { mutableStateOf<Boolean>(false) }
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
@@ -102,8 +104,10 @@ fun AvatarScreen(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        AnimatedVisibility(error) {
-            ErrorBox("Avatar upload failed.")
+        AnimatedVisibility(avatarState is AuthViewModel.AvatarState.Error) {
+            if (avatarState is AuthViewModel.AvatarState.Error) {
+                ErrorBox(avatarState.message)
+            }
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Column(
@@ -122,16 +126,20 @@ fun AvatarScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 text = "Continue",
+                loading = avatarState == AuthViewModel.AvatarState.Loading,
                 disabled = !selected,
                 onClick = {
-                    authViewModel.uploadAvatar(AuthPreferences.getUserID()!!, selectedImageUri!!, onError = {
-                        error = true
-                    }, onSuccess = {
-                        AvatarPreferences.setExists(true);
-                        navController.navigate(Screen.Home.route)
-                    })
+                    authViewModel.uploadAvatar(AuthPreferences.getUserID()!!, selectedImageUri!!)
                 }
             )
+        }
+    }
+    LaunchedEffect(avatarState) {
+        when (avatarState) {
+            is AuthViewModel.AvatarState.Success -> {
+                AvatarPreferences.setExists(true);
+                navController.navigate(Screen.Home.route)
+            } else -> { }
         }
     }
 }

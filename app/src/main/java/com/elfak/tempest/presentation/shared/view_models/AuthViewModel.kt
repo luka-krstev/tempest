@@ -1,20 +1,16 @@
 package com.elfak.tempest.presentation.shared.view_models
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
-import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.auth.User
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class AuthViewModel : ViewModel() {
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -24,12 +20,11 @@ class AuthViewModel : ViewModel() {
     var state: AuthState by mutableStateOf(AuthState.Idle)
         private set
 
-    fun uploadAvatar(
-        userId: String,
-        imageUri: Uri,
-        onError: (exception: Exception) -> Unit,
-        onSuccess: () -> Unit
-    ) {
+    var avatar: AvatarState by mutableStateOf(AvatarState.Idle)
+        private set
+
+    fun uploadAvatar(userId: String, imageUri: Uri) {
+        avatar = AvatarState.Loading
         val imageRef = storage.reference.child("images/$userId/avatar.jpg")
         val uploadTask = imageRef.putFile(imageUri)
         uploadTask.addOnSuccessListener { task ->
@@ -39,13 +34,13 @@ class AuthViewModel : ViewModel() {
                 )
 
                 firestore.collection("users").document(userId).update(update).addOnSuccessListener {
-                    onSuccess()
+                    avatar = AvatarState.Success("Avatar set successfully.");
                 }.addOnFailureListener {
-                    onError(it)
+                    avatar = AvatarState.Error(it.message.toString())
                 }
             }
         }.addOnFailureListener {
-            onError(it)
+            avatar = AvatarState.Error(it.message.toString())
         }
     }
 
@@ -129,5 +124,12 @@ class AuthViewModel : ViewModel() {
         data object Loading : AuthState()
         data class Success(val message: String) : AuthState()
         data class Error(val message: String) : AuthState()
+    }
+
+    sealed class AvatarState {
+        data object Idle : AvatarState()
+        data object Loading : AvatarState()
+        data class Success(val message: String) : AvatarState()
+        data class Error(val message: String) : AvatarState()
     }
 }
