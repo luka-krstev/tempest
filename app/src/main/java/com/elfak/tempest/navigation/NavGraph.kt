@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.elfak.tempest.presentation.avatar.AvatarScreen
 import com.elfak.tempest.presentation.home.HomeScreen
 import com.elfak.tempest.presentation.login.LoginScreen
 import com.elfak.tempest.presentation.register.RegisterScreen
@@ -24,6 +25,9 @@ fun SetupNavGraph(
         }
         composable(route = Screen.Register.route) {
             RegisterScreen(navController)
+        }
+        composable(route = Screen.Avatar.route) {
+            AvatarScreen(navController)
         }
     }
 }

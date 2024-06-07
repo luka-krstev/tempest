@@ -1,6 +1,7 @@
 package com.elfak.tempest.presentation.shared.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,6 +52,21 @@ fun Button(
     } else if (type == "secondary") {
         textStyling = TextStyle(
             color = Color(0xFF75777C),
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+    } else if (type == "ternary") {
+        backgroundStyling = backgroundStyling.background(
+            color = Color(0xFFFBFBFB),
+            shape = RoundedCornerShape(10.dp)
+        ).border(
+            width = 1.dp,
+            color = Color(0xFFE6E7EA),
+            shape = RoundedCornerShape(10.dp)
+        )
+        textStyling = TextStyle(
+            color = Color(0xFF232529),
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp

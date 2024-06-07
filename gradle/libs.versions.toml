@@ -14,6 +14,8 @@ firebaseAuth = "23.0.0"
 firebaseFirestoreKtx = "25.0.0"
 firebaseFirestore = "25.0.0"
 material3 = "1.2.0-rc01"
+coil = "2.6.0"
+firebaseStorage = "21.0.0"
 
 [libraries]
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
@@ -34,6 +36,8 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage", version.ref = "firebaseStorage" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

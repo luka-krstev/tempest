@@ -25,6 +25,7 @@ import com.elfak.tempest.presentation.shared.components.Button
 import com.elfak.tempest.presentation.shared.components.ErrorBox
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
 import com.elfak.tempest.presentation.shared.validators.Validators
 import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 
@@ -91,9 +92,13 @@ fun LoginScreen(navController: NavController) {
     LaunchedEffect(authState) {
         when (authState) {
             is AuthViewModel.AuthState.Success -> {
-                navController.navigate(Screen.Home.route)
-            }
-            else -> { }
+                val avatar = AvatarPreferences.getExists()
+                if (!avatar) {
+                    navController.navigate(Screen.Avatar.route)
+                } else {
+                    navController.navigate(Screen.Home.route)
+                }
+            } else -> { }
         }
     }
 }

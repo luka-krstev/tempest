@@ -25,6 +25,7 @@ import com.elfak.tempest.presentation.shared.components.Button
 import com.elfak.tempest.presentation.shared.components.ErrorBox
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
 import com.elfak.tempest.presentation.shared.validators.Validators
 import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 
@@ -98,6 +99,8 @@ fun RegisterScreen(navController: NavController) {
                 loading = authState == AuthViewModel.AuthState.Loading,
                 onClick = {
                     authViewModel.signUp(email, password, phone, name, username)
+                    AvatarPreferences.setExists(false);
+                    navController.navigate(Screen.Avatar.route)
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -110,7 +113,7 @@ fun RegisterScreen(navController: NavController) {
     LaunchedEffect(authState) {
         when (authState) {
             is AuthViewModel.AuthState.Success -> {
-                navController.navigate(Screen.Home.route)
+                navController.navigate(Screen.Avatar.route)
             }
             else -> { }
         }
