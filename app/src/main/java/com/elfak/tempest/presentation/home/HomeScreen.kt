@@ -14,25 +14,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
+import com.google.android.gms.maps.UiSettings
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val authViewModel = viewModel<AuthViewModel>()
+    val homeViewModel = viewModel<HomeViewModel>()
 
-    Column(
+    GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Home",
-            modifier = Modifier.clickable {
-                authViewModel.signOut {
-                    navController.navigate(Screen.Login.route)
-                }
-            }
-        )
-    }
+        properties = homeViewModel.state.properties,
+        uiSettings = MapUiSettings(zoomControlsEnabled = false)
+    )
 }
 
 @Composable
