@@ -20,26 +20,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        AuthPreferences.init(this)
-        AvatarPreferences.init(this)
-        FirebaseApp.initializeApp(this)
-
         enableEdgeToEdge()
+
         setContent {
             navController = rememberNavController()
-            SetupNavGraph(navController = navController)
-
             val userID = AuthPreferences.getUserID()
             if (userID != null) {
                 val avatar = AvatarPreferences.getExists()
                 if (!avatar) {
-                    navController.navigate(Screen.Avatar.route)
+                    SetupNavGraph(navController = navController, startDestination = Screen.Avatar.route)
                 } else {
-                    navController.navigate(Screen.Home.route)
+                    SetupNavGraph(navController = navController, startDestination = Screen.Home.route)
                 }
             } else {
-                navController.navigate(Screen.Login.route)
+                SetupNavGraph(navController = navController, startDestination = Screen.Login.route)
             }
         }
     }

@@ -11,11 +11,12 @@ import com.elfak.tempest.presentation.register.RegisterScreen
 
 @Composable
 fun SetupNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    startDestination: String
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = startDestination
     ) {
         composable(route = Screen.Home.route) {
             HomeScreen(navController)

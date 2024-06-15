@@ -37,7 +37,7 @@ fun Dot(
     ) {
         Box(
             modifier = Modifier
-                .size(19.dp)
+                .size(18.dp)
                 .background(
                     color = color.copy(alpha = 0.4f),
                     shape = RoundedCornerShape(128.dp)
