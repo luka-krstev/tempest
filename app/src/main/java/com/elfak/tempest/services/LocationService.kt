@@ -14,6 +14,8 @@ import com.elfak.tempest.location.LocationClient
 import com.elfak.tempest.location.NativeLocationClient
 import com.elfak.tempest.presentation.MainActivity
 import com.google.android.gms.location.LocationServices
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +27,9 @@ import kotlinx.coroutines.flow.onEach
 class LocationService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var locationClient: LocationClient
+    private val firestore by lazy { FirebaseFirestore.getInstance() }
+    private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
+    private lateinit var userId: String
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -36,6 +41,8 @@ class LocationService : Service() {
             applicationContext,
             LocationServices.getFusedLocationProviderClient(applicationContext)
         )
+        userId = firebaseAuth.currentUser?.uid ?: "unknown_user"
+        updateServiceStatus(true)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -80,6 +87,18 @@ class LocationService : Service() {
                 )
 
                 notificationManager.notify(1, updated.build())
+
+                val locationData = mapOf(
+                    "latitude" to latitude,
+                    "longitude" to longitude,
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                firestore.collection("users").document(userId)
+                    .update(locationData)
+                    .addOnFailureListener { e ->
+                        e.printStackTrace()
+                    }
             }
             .launchIn(serviceScope)
 
@@ -91,8 +110,19 @@ class LocationService : Service() {
         stopSelf()
     }
 
+    private fun updateServiceStatus(isActive: Boolean) {
+        val statusData = mapOf("serviceActive" to isActive)
+        firestore.collection("users").document(userId)
+            .update(statusData)
+            .addOnFailureListener { e ->
+                e.printStackTrace()
+            }
+    }
+
+
     override fun onDestroy() {
         super.onDestroy()
+        updateServiceStatus(false)
         serviceScope.cancel()
     }
 
