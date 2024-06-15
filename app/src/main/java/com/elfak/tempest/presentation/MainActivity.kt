@@ -4,15 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.navigation.SetupNavGraph
 import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
 import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
