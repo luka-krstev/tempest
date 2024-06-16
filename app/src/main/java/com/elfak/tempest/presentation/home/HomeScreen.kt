@@ -87,6 +87,7 @@ fun HomeScreen(navController: NavController) {
     }
 
     LaunchedEffect(Unit) {
+        permissionsState.launchMultiplePermissionRequest()
         locationClient.getActiveUserLocations()
             .catch { exception -> exception.printStackTrace() }
             .onEach { locations ->
@@ -156,10 +157,6 @@ fun HomeScreen(navController: NavController) {
                     RoundedButton(
                         active = active
                     ) {
-                        if (!permissionsState.allPermissionsGranted) {
-                            permissionsState.launchMultiplePermissionRequest()
-                        }
-
                         if (active) {
                             Intent(context, LocationService::class.java).apply {
                                 action = LocationService.ACTION_STOP
