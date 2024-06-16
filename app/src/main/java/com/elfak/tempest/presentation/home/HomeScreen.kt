@@ -30,6 +30,8 @@ import com.elfak.tempest.isServiceRunning
 import com.elfak.tempest.location.NativeLocationClient
 import com.elfak.tempest.location.UserLocation
 import com.elfak.tempest.navigation.Screen
+import com.elfak.tempest.presentation.report.Report
+import com.elfak.tempest.presentation.report.ReportViewModel
 import com.elfak.tempest.services.LocationService
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -49,6 +51,7 @@ import kotlinx.coroutines.flow.onEach
 @Composable
 fun HomeScreen(navController: NavController) {
     val homeViewModel = viewModel<HomeViewModel>()
+    val reportViewModel = viewModel<ReportViewModel>()
     val context = LocalContext.current as ComponentActivity
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -59,6 +62,7 @@ fun HomeScreen(navController: NavController) {
         )
     )
     var activeUsersLocations by rememberSaveable { mutableStateOf<List<UserLocation>>(emptyList()) }
+    var reportsLocations by rememberSaveable { mutableStateOf<List<Report>>(emptyList()) }
     val cameraPositionState = rememberCameraPositionState()
     var currentLocation by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
     var active by rememberSaveable { mutableStateOf(context.isServiceRunning(LocationService::class.java)) }
@@ -94,6 +98,13 @@ fun HomeScreen(navController: NavController) {
                 activeUsersLocations = locations
             }
             .launchIn(coroutineScope)
+
+        reportViewModel.fetchAllReports()
+            .catch { exception -> exception.printStackTrace() }
+            .onEach { reports ->
+                reportsLocations = reports
+            }
+            .launchIn(coroutineScope)
     }
 
     Column(
@@ -124,6 +135,31 @@ fun HomeScreen(navController: NavController) {
                         position = LatLng(userLocation.latitude, userLocation.longitude),
                         title = "User: ${userLocation.id}",
                         color = Color(0xFF266DF0)
+                    )
+                }
+                reportsLocations.forEach { reportLocation ->
+                    val color: Color
+                    when (reportLocation.priority) {
+                        "Low" -> {
+                            color = Color(0xFF75777C)
+                        }
+                        "Medium" -> {
+                            color = Color(0xFFEDD308)
+                        }
+                        "High" -> {
+                            color = Color(0xFFFF5B59)
+                        }
+                        else -> {
+                            color = Color(0xFF75777C)
+                        }
+                    }
+
+                    Dot(
+                        position = LatLng(reportLocation.latitude.toDouble(),
+                            reportLocation.longitude.toDouble()
+                        ),
+                        title = "Report: ${reportLocation.title}",
+                        color = color
                     )
                 }
             }

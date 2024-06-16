@@ -1,26 +1,36 @@
 package com.elfak.tempest.presentation.report
 
+import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel.AuthState
+import com.elfak.tempest.helpers.DateParceler
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.toObjects
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.TypeParceler
 import java.util.Date
 
+@Parcelize
+@TypeParceler<Date, DateParceler>
 data class Report(
-    val title: String,
-    val content: String,
-    val priority: String,
-    val timeCreated: Date,
-    val timeEdited: Date?,
-    val userEmail: String,
-    val latitude: Float,
-    val longitude: Float,
-)
+    val title: String = "",
+    val content: String = "",
+    val priority: String = "",
+    val timeCreated: Date = Date(),
+    val timeEdited: Date? = null,
+    val userEmail: String = "",
+    val latitude: Float = 0f,
+    val longitude: Float = 0f,
+) : Parcelable
 
 class ReportViewModel : ViewModel() {
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -50,11 +60,29 @@ class ReportViewModel : ViewModel() {
                     .addOnSuccessListener {
                         state = ReportState.Success("Report created successfully.")
                     }
-                    .addOnFailureListener { e ->
+                    .addOnFailureListener { exception ->
                         state = ReportState.Error("Report creation failed.")
-                        e.printStackTrace()
+                        exception.printStackTrace()
                     }
             }
+        }
+    }
+
+    fun fetchAllReports(): Flow<List<Report>> = callbackFlow {
+        val reportsCollection = firestore.collection("reports")
+
+        val listenerRegistration: ListenerRegistration = reportsCollection.addSnapshotListener { snapshot, exception ->
+            if (exception != null) {
+                close(exception)
+                return@addSnapshotListener
+            }
+
+            val reports = snapshot?.toObjects<Report>().orEmpty()
+            trySend(reports)
+        }
+
+        awaitClose {
+            listenerRegistration.remove()
         }
     }
 

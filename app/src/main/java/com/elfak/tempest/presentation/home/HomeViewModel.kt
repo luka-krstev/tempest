@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.MapStyleOptions
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.maps.android.compose.MapProperties
 
 class HomeViewModel : ViewModel() {
@@ -16,4 +17,6 @@ class HomeViewModel : ViewModel() {
             mapStyleOptions = MapStyleOptions(MapStyle.style)
         )
     )
+
+
 }
