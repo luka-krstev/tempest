@@ -92,7 +92,7 @@ fun Button(
     ) {
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.width(20.dp).height(20.dp),
+                modifier = Modifier.width(18.dp).height(18.dp),
                 strokeWidth = 3.dp,
                 color = Color.White,
                 trackColor = Color(0xFFDEDEDE),

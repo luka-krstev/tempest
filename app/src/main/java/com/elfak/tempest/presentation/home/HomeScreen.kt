@@ -15,17 +15,21 @@ import android.Manifest
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.elfak.tempest.R
 import com.elfak.tempest.isServiceRunning
 import com.elfak.tempest.location.NativeLocationClient
 import com.elfak.tempest.location.UserLocation
+import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.services.LocationService
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -58,6 +62,7 @@ fun HomeScreen(navController: NavController) {
     val cameraPositionState = rememberCameraPositionState()
     var currentLocation by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
     var active by rememberSaveable { mutableStateOf(context.isServiceRunning(LocationService::class.java)) }
+    val coroutineScope = rememberCoroutineScope()
     val locationClient = NativeLocationClient(
         context,
         LocationServices.getFusedLocationProviderClient(context)
@@ -77,7 +82,7 @@ fun HomeScreen(navController: NavController) {
                     }
                     currentLocation = Pair(latitude, longitude)
                 }
-                .launchIn(this)
+                .launchIn(coroutineScope)
         }
     }
 
@@ -87,65 +92,89 @@ fun HomeScreen(navController: NavController) {
             .onEach { locations ->
                 activeUsersLocations = locations
             }
-            .launchIn(this)
+            .launchIn(coroutineScope)
     }
 
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            properties = homeViewModel.state.properties,
-            uiSettings = MapUiSettings(
-                zoomControlsEnabled = false,
-                compassEnabled = false,
-                mapToolbarEnabled = false,
-            ),
-            cameraPositionState = cameraPositionState
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            currentLocation?.let { location ->
-                Dot(
-                    title = "Current user",
-                    position = LatLng(location.first, location.second),
-                    color = Color(0xFF54D490)
-                )
-            }
-            activeUsersLocations.forEach { userLocation ->
-                Dot(
-                    position = LatLng(userLocation.latitude, userLocation.longitude),
-                    title = "User: ${userLocation.id}",
-                    color = Color(0xFF266DF0)
-                )
-            }
-        }
-        Column(
-            modifier = Modifier.fillMaxSize().padding(
-                24.dp,
-                32.dp,
-            ),
-            horizontalAlignment = Alignment.End
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-            RoundedButton(
-                active = active
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                properties = homeViewModel.state.properties,
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = false,
+                    compassEnabled = false,
+                    mapToolbarEnabled = false,
+                ),
+                cameraPositionState = cameraPositionState
             ) {
-                if (!permissionsState.allPermissionsGranted) {
-                    permissionsState.launchMultiplePermissionRequest()
+                currentLocation?.let { location ->
+                    Dot(
+                        title = "Current user",
+                        position = LatLng(location.first, location.second),
+                        color = Color(0xFF54D490)
+                    )
                 }
-
-                if (active) {
-                    Intent(context, LocationService::class.java).apply {
-                        action = LocationService.ACTION_STOP
-                        context.startService(this)
+                activeUsersLocations.forEach { userLocation ->
+                    Dot(
+                        position = LatLng(userLocation.latitude, userLocation.longitude),
+                        title = "User: ${userLocation.id}",
+                        color = Color(0xFF266DF0)
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        24.dp,
+                        32.dp,
+                    ),
+                horizontalAlignment = Alignment.End
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Option(
+                        description = "Create new note",
+                        icon = R.drawable.note,
+                    ) {
+                        currentLocation?.let {
+                            navController.navigate(
+                                Screen.Report.createRoute(
+                                    it.first,
+                                    it.second
+                                )
+                            )
+                        }
                     }
-                } else {
-                    Intent(context, LocationService::class.java).apply {
-                        action = LocationService.ACTION_START
-                        context.startService(this)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    RoundedButton(
+                        active = active
+                    ) {
+                        if (!permissionsState.allPermissionsGranted) {
+                            permissionsState.launchMultiplePermissionRequest()
+                        }
+
+                        if (active) {
+                            Intent(context, LocationService::class.java).apply {
+                                action = LocationService.ACTION_STOP
+                                context.startService(this)
+                            }
+                        } else {
+                            Intent(context, LocationService::class.java).apply {
+                                action = LocationService.ACTION_START
+                                context.startService(this)
+                            }
+                        }
+
+                        active = !active
                     }
                 }
-
-                active = !active
             }
         }
     }
