@@ -34,13 +34,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfak.tempest.R
-import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.noAnimationClickable
 import com.elfak.tempest.presentation.shared.components.Button
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.ToggleButtons
-import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
+import com.elfak.tempest.presentation.shared.view_models.Report
+import com.elfak.tempest.presentation.shared.view_models.ReportViewModel
 
 fun validate(title: String, content: String): Boolean {
     if (title.isEmpty()) return false
@@ -49,7 +48,7 @@ fun validate(title: String, content: String): Boolean {
 }
 
 @Composable
-fun ReportScreen(navController: NavController, latitude: Float, longitude: Float) {
+fun ReportScreen(navController: NavController, latitude: Float, longitude: Float, uid: String?) {
     var title by rememberSaveable { mutableStateOf("") }
     var content by rememberSaveable { mutableStateOf("") }
     val options = listOf("Low", "Medium", "High")
@@ -60,6 +59,19 @@ fun ReportScreen(navController: NavController, latitude: Float, longitude: Float
 
     val reportViewModel = viewModel<ReportViewModel>()
     val reportState = reportViewModel.state
+
+
+    LaunchedEffect(Unit) {
+        if (uid != null) {
+            reportViewModel.fetchReportByUid(uid) {
+                if (it != null) {
+                    title = it.title
+                    content = it.content
+                    selectedOption = it.priority
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -92,7 +104,7 @@ fun ReportScreen(navController: NavController, latitude: Float, longitude: Float
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "Create a new report",
+                text = if (uid == null) "Create a new report" else "Edit a report",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
@@ -114,11 +126,15 @@ fun ReportScreen(navController: NavController, latitude: Float, longitude: Float
         }
         Spacer(modifier = Modifier.weight(1f))
         Button(
-            text = "Create",
+            text = if (uid == null) "Create" else "Edit",
             disabled = !valid,
             loading = reportState == ReportViewModel.ReportState.Loading,
         ) {
-            reportViewModel.createReport(title, content, selectedOption, latitude, longitude)
+            if (uid == null) {
+                reportViewModel.createReport(title, content, selectedOption, latitude, longitude)
+            } else {
+                reportViewModel.updateReport(uid, title, content, selectedOption)
+            }
         }
     }
 

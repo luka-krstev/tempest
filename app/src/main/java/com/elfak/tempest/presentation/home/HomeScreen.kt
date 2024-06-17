@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,8 +31,9 @@ import com.elfak.tempest.isServiceRunning
 import com.elfak.tempest.location.NativeLocationClient
 import com.elfak.tempest.location.UserLocation
 import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.report.Report
-import com.elfak.tempest.presentation.report.ReportViewModel
+import com.elfak.tempest.presentation.shared.view_models.Report
+import com.elfak.tempest.presentation.shared.view_models.ReportViewModel
+import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 import com.elfak.tempest.services.LocationService
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
@@ -40,8 +42,6 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -52,6 +52,8 @@ import kotlinx.coroutines.flow.onEach
 fun HomeScreen(navController: NavController) {
     val homeViewModel = viewModel<HomeViewModel>()
     val reportViewModel = viewModel<ReportViewModel>()
+    val authViewModel = viewModel<AuthViewModel>()
+
     val context = LocalContext.current as ComponentActivity
     val permissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -62,7 +64,7 @@ fun HomeScreen(navController: NavController) {
         )
     )
     var activeUsersLocations by rememberSaveable { mutableStateOf<List<UserLocation>>(emptyList()) }
-    var reportsLocations by rememberSaveable { mutableStateOf<List<Report>>(emptyList()) }
+    var reportsLocations by remember { mutableStateOf<List<Report>>(emptyList()) }
     val cameraPositionState = rememberCameraPositionState()
     var currentLocation by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
     var active by rememberSaveable { mutableStateOf(context.isServiceRunning(LocationService::class.java)) }
@@ -125,42 +127,59 @@ fun HomeScreen(navController: NavController) {
             ) {
                 currentLocation?.let { location ->
                     Dot(
-                        title = "Current user",
                         position = LatLng(location.first, location.second),
                         color = Color(0xFF54D490)
-                    )
+                    ) { }
                 }
                 activeUsersLocations.forEach { userLocation ->
                     Dot(
                         position = LatLng(userLocation.latitude, userLocation.longitude),
-                        title = "User: ${userLocation.id}",
                         color = Color(0xFF266DF0)
-                    )
+                    ) { }
                 }
                 reportsLocations.forEach { reportLocation ->
-                    val color: Color
-                    when (reportLocation.priority) {
+                    val color: Color = when (reportLocation.priority) {
                         "Low" -> {
-                            color = Color(0xFF75777C)
+                            Color(0xFF75777C)
                         }
                         "Medium" -> {
-                            color = Color(0xFFEDD308)
+                            Color(0xFFEDD308)
                         }
                         "High" -> {
-                            color = Color(0xFFFF5B59)
+                            Color(0xFFFF5B59)
                         }
                         else -> {
-                            color = Color(0xFF75777C)
+                            Color(0xFF75777C)
                         }
                     }
-
-                    Dot(
-                        position = LatLng(reportLocation.latitude.toDouble(),
-                            reportLocation.longitude.toDouble()
-                        ),
-                        title = "Report: ${reportLocation.title}",
-                        color = color
-                    )
+                    if (!reportLocation.solved) {
+                        Dot(
+                            position = LatLng(reportLocation.latitude.toDouble(),
+                                reportLocation.longitude.toDouble()
+                            ),
+                            color = color
+                        ) {
+                            navController.navigate(Screen.ReportPreview.createRoute(reportLocation.id))
+                        }
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .padding(0.dp, 16.dp, 0.dp, 0.dp)
+            ) {
+                Pill(text = "Reports") {}
+                Spacer(modifier = Modifier.height(8.dp))
+                Pill(text = "Users") {}
+                Spacer(modifier = Modifier.height(8.dp))
+                Option(
+                    description = "Exit",
+                    icon = R.drawable.exit,
+                ) {
+                    authViewModel.signOut {
+                        navController.navigate(Screen.Login.route)
+                    }
                 }
             }
             Column(

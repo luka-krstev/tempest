@@ -15,6 +15,7 @@ import com.elfak.tempest.presentation.home.HomeScreen
 import com.elfak.tempest.presentation.login.LoginScreen
 import com.elfak.tempest.presentation.register.RegisterScreen
 import com.elfak.tempest.presentation.report.ReportScreen
+import com.elfak.tempest.presentation.report_preview.ReportPreviewScreen
 
 @Composable
 fun SetupNavGraph(
@@ -27,6 +28,12 @@ fun SetupNavGraph(
     ) {
         composable(
             route = Screen.Home.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
             exitTransition = {
                 slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
@@ -38,27 +45,20 @@ fun SetupNavGraph(
                     AnimatedContentTransitionScope.SlideDirection.Right,
                     tween(600)
                 )
-            }
+            },
         ) {
             HomeScreen(navController)
         }
-        composable(route = Screen.Login.route) {
-            LoginScreen(navController)
-        }
-        composable(route = Screen.Register.route) {
-            RegisterScreen(navController)
-        }
-        composable(route = Screen.Avatar.route) {
-            AvatarScreen(navController)
-        }
         composable(
-            route = Screen.Report.route,
-            arguments = listOf(
-                navArgument("latitude") { type = NavType.FloatType },
-                navArgument("longitude") { type = NavType.FloatType }
-            ),
+            route = Screen.Login.route,
             enterTransition = {
                 slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
                     tween(600)
                 )
@@ -68,11 +68,143 @@ fun SetupNavGraph(
                     AnimatedContentTransitionScope.SlideDirection.Right,
                     tween(600)
                 )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            LoginScreen(navController)
+        }
+        composable(
+            route = Screen.Register.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            RegisterScreen(navController)
+        }
+        composable(
+            route = Screen.Avatar.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            AvatarScreen(navController)
+        }
+        composable(
+            route = Screen.Report.route,
+            arguments = listOf(
+                navArgument("latitude") { type = NavType.FloatType },
+                navArgument("longitude") { type = NavType.FloatType },
+                navArgument("uid") { type = NavType.StringType; nullable = true; defaultValue = null }
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
             }
         ) {
             val latitude = it.arguments?.getFloat("latitude") ?: 0f
             val longitude = it.arguments?.getFloat("longitude") ?: 0f
-            ReportScreen(navController, latitude, longitude)
+            val uid = it.arguments?.getString("uid")
+            ReportScreen(navController, latitude, longitude, uid)
+        }
+        composable(
+            route = Screen.ReportPreview.route,
+            arguments = listOf(
+                navArgument("uid") { type = NavType.StringType },
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            val uid = it.arguments?.getString("uid") ?: ""
+            ReportPreviewScreen(navController, uid)
         }
     }
 }

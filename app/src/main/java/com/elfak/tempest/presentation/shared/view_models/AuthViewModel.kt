@@ -77,7 +77,8 @@ class AuthViewModel : ViewModel() {
                             "name" to name,
                             "username" to username,
                             "avatar" to null,
-                            "phone" to phone
+                            "phone" to phone,
+                            "points" to 0
                         )
 
                         if (user == null) {
