@@ -179,7 +179,9 @@ fun HomeScreen(navController: NavController) {
                     navController.navigate(Screen.AllReports.route)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Pill(text = "Users") {}
+                Pill(text = "Users") {
+                    navController.navigate(Screen.Users.route)
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Option(
                     description = "Exit",

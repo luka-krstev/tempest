@@ -11,6 +11,7 @@ import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -18,6 +19,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class User(
+    val id: String = "",
     val avatar: String = "",
     val email: String = "",
     val latitude: Double = 0.0,
@@ -43,6 +45,22 @@ class AuthViewModel : ViewModel() {
 
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
+    }
+
+    fun getUsers(callback: (List<User>) -> Unit) {
+        firestore.collection("users")
+            .orderBy("points", Query.Direction.DESCENDING)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val users = mutableListOf<User>()
+                for (document in querySnapshot.documents) {
+                    val user = document.toObject(User::class.java)
+                    if (user != null) {
+                        users.add(user.copy(id = document.id))
+                    }
+                }
+                callback(users)
+            }
     }
 
     fun uploadAvatar(userId: String, imageUri: Uri) {
@@ -86,7 +104,11 @@ class AuthViewModel : ViewModel() {
             .addOnSuccessListener { documentSnapshot: DocumentSnapshot ->
                 if (documentSnapshot.exists()) {
                     val user = documentSnapshot.toObject(User::class.java)
-                    callback(user)
+                    if (user != null) {
+                        callback(user.copy(id = documentSnapshot.id))
+                    } else {
+                        callback(null)
+                    }
                 } else {
                     callback(null)
                 }

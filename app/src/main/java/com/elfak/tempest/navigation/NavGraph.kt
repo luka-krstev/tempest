@@ -18,6 +18,7 @@ import com.elfak.tempest.presentation.register.RegisterScreen
 import com.elfak.tempest.presentation.report.ReportScreen
 import com.elfak.tempest.presentation.report_preview.ReportPreviewScreen
 import com.elfak.tempest.presentation.user_preview.UserPreviewScreen
+import com.elfak.tempest.presentation.users.UsersScreen
 
 @Composable
 fun SetupNavGraph(
@@ -166,6 +167,35 @@ fun SetupNavGraph(
             }
         ) {
             AllReportsScreen(navController)
+        }
+        composable(
+            route = Screen.Users.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            UsersScreen(navController)
         }
         composable(
             route = Screen.Report.route,
