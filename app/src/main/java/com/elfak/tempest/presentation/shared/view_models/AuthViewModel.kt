@@ -1,6 +1,7 @@
 package com.elfak.tempest.presentation.shared.view_models
 
 import android.net.Uri
+import android.os.Parcelable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,9 +9,26 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class User(
+    val avatar: String = "",
+    val email: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val name: String = "",
+    val phone: String = "",
+    val points: Int = 0,
+    val serviceActive: Boolean = false,
+    val timestamp: Long = 0,
+    val username: String = ""
+) : Parcelable
 
 class AuthViewModel : ViewModel() {
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
@@ -22,6 +40,10 @@ class AuthViewModel : ViewModel() {
 
     var avatar: AvatarState by mutableStateOf(AvatarState.Idle)
         private set
+
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
 
     fun uploadAvatar(userId: String, imageUri: Uri) {
         avatar = AvatarState.Loading
@@ -57,6 +79,18 @@ class AuthViewModel : ViewModel() {
                     }
                 }
         }
+    }
+
+    fun getUserById(userId: String, callback: (user: User?) -> Unit) {
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { documentSnapshot: DocumentSnapshot ->
+                if (documentSnapshot.exists()) {
+                    val user = documentSnapshot.toObject(User::class.java)
+                    callback(user)
+                } else {
+                    callback(null)
+                }
+            }
     }
 
     fun signUp(

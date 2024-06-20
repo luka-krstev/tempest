@@ -12,4 +12,7 @@ sealed class Screen(val route: String) {
     data object ReportPreview: Screen(route = "report_preview_screen/{uid}") {
         fun createRoute(uid: String) = "report_preview_screen/$uid"
     }
+    data object UserPreview: Screen(route = "user_preview_screen/{uid}") {
+        fun createRoute(uid: String) = "user_preview_screen/$uid"
+    }
 }

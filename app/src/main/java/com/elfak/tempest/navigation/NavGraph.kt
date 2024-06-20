@@ -17,6 +17,7 @@ import com.elfak.tempest.presentation.login.LoginScreen
 import com.elfak.tempest.presentation.register.RegisterScreen
 import com.elfak.tempest.presentation.report.ReportScreen
 import com.elfak.tempest.presentation.report_preview.ReportPreviewScreen
+import com.elfak.tempest.presentation.user_preview.UserPreviewScreen
 
 @Composable
 fun SetupNavGraph(
@@ -235,6 +236,39 @@ fun SetupNavGraph(
         ) {
             val uid = it.arguments?.getString("uid") ?: ""
             ReportPreviewScreen(navController, uid)
+        }
+        composable(
+            route = Screen.UserPreview.route,
+            arguments = listOf(
+                navArgument("uid") { type = NavType.StringType },
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            val uid = it.arguments?.getString("uid") ?: ""
+            UserPreviewScreen(navController, uid)
         }
     }
 }

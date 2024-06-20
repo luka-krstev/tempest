@@ -129,13 +129,19 @@ fun HomeScreen(navController: NavController) {
                     Dot(
                         position = LatLng(location.first, location.second),
                         color = Color(0xFF54D490)
-                    ) { }
+                    ) {
+                        authViewModel.getCurrentUserId()?.let {
+                            navController.navigate(Screen.UserPreview.createRoute(it))
+                        }
+                    }
                 }
                 activeUsersLocations.forEach { userLocation ->
                     Dot(
                         position = LatLng(userLocation.latitude, userLocation.longitude),
                         color = Color(0xFF266DF0)
-                    ) { }
+                    ) {
+                        navController.navigate(Screen.UserPreview.createRoute(userLocation.id))
+                    }
                 }
                 reportsLocations.forEach { reportLocation ->
                     val color: Color = when (reportLocation.priority) {
