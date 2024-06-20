@@ -5,6 +5,7 @@ sealed class Screen(val route: String) {
     data object Login: Screen(route = "register_screen")
     data object Register: Screen(route = "login_screen")
     data object Avatar: Screen(route = "avatar_screen")
+    data object AllReports: Screen(route = "all_reports_screen")
     data object Report: Screen(route = "report_screen/{latitude}/{longitude}/{uid}") {
         fun createRoute(latitude: Double, longitude: Double, uid: String? = null) = "report_screen/$latitude/$longitude/$uid"
     }

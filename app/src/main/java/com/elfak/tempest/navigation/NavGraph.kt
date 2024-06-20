@@ -10,6 +10,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.elfak.tempest.presentation.all_reports.AllReportsScreen
 import com.elfak.tempest.presentation.avatar.AvatarScreen
 import com.elfak.tempest.presentation.home.HomeScreen
 import com.elfak.tempest.presentation.login.LoginScreen
@@ -135,6 +136,35 @@ fun SetupNavGraph(
             }
         ) {
             AvatarScreen(navController)
+        }
+        composable(
+            route = Screen.AllReports.route,
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(600)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(600)
+                )
+            }
+        ) {
+            AllReportsScreen(navController)
         }
         composable(
             route = Screen.Report.route,

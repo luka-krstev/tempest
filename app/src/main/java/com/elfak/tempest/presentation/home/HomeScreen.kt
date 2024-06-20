@@ -169,7 +169,9 @@ fun HomeScreen(navController: NavController) {
                     .padding(16.dp)
                     .padding(0.dp, 16.dp, 0.dp, 0.dp)
             ) {
-                Pill(text = "Reports") {}
+                Pill(text = "Reports") {
+                    navController.navigate(Screen.AllReports.route)
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Pill(text = "Users") {}
                 Spacer(modifier = Modifier.height(8.dp))
