@@ -20,7 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Input(label: String = "label", type: String = "text", value: String, onValueChange: (String) -> Unit) {
+fun Input(
+    label: String = "label",
+    type: String = "text",
+    value: String,
+    maxLines: Int = 1,
+    onValueChange: (String) -> Unit
+) {
     var transformation = VisualTransformation.None;
 
     if (type == "password") {
@@ -40,6 +46,7 @@ fun Input(label: String = "label", type: String = "text", value: String, onValue
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            maxLines = maxLines,
             visualTransformation = transformation,
             modifier = Modifier
                 .fillMaxWidth()

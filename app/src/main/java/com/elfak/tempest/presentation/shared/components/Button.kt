@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.elfak.tempest.noAnimationClickable
 
 @Composable
 fun Button(
@@ -79,7 +80,7 @@ fun Button(
 
     backgroundStyling = backgroundStyling
         .padding(12.dp)
-        .clickable(onClick = {
+        .noAnimationClickable(onClick = {
             if (!loading && !disabled) {
                 onClick()
             }
@@ -91,7 +92,7 @@ fun Button(
     ) {
         if (loading) {
             CircularProgressIndicator(
-                modifier = Modifier.width(20.dp).height(20.dp),
+                modifier = Modifier.width(18.dp).height(18.dp),
                 strokeWidth = 3.dp,
                 color = Color.White,
                 trackColor = Color(0xFFDEDEDE),
