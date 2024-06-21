@@ -1,5 +1,6 @@
 package com.elfak.tempest.presentation.shared.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ fun Input(
     label: String = "label",
     type: String = "text",
     value: String,
+    error: String = "",
     maxLines: Int = 1,
     onValueChange: (String) -> Unit
 ) {
@@ -57,5 +59,9 @@ fun Input(
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         )
+        Spacer(modifier = Modifier.height(4.dp))
+        AnimatedVisibility(error.isNotEmpty()) {
+            Text(text = error, color = Color(0xFFF04438))
+        }
     }
 }

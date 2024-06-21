@@ -1,13 +1,9 @@
 package com.elfak.tempest.presentation.avatar
 
-import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,28 +29,24 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.elfak.tempest.presentation.shared.components.Button
-import com.elfak.tempest.R
 import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.register.RegisterScreen
 import com.elfak.tempest.presentation.shared.components.ErrorBox
-import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
-import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
 
 @Composable
 fun AvatarScreen(navController: NavController) {
-    val authViewModel = viewModel<AuthViewModel>()
-    val avatarState = authViewModel.avatar
+    val avatarViewModel = viewModel<AvatarViewModel>()
+    val state = avatarViewModel.state
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(
-        Uri.parse("android.resource://com.elfak.tempest/" + R.drawable.placeholder))
+    if (state.success) {
+        navController.navigate(Screen.Home.route)
     }
-    var selected by remember { mutableStateOf<Boolean>(false) }
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            selectedImageUri = uri
-            selected = true
+            if (uri != null) {
+                avatarViewModel.pick(uri)
+            }
         }
     )
 
@@ -73,7 +60,7 @@ fun AvatarScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = selectedImageUri,
+                model = state.uri,
                 contentDescription = "Selected image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -104,10 +91,8 @@ fun AvatarScreen(navController: NavController) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        AnimatedVisibility(avatarState is AuthViewModel.AvatarState.Error) {
-            if (avatarState is AuthViewModel.AvatarState.Error) {
-                ErrorBox(avatarState.message)
-            }
+        AnimatedVisibility(state.error.isNotEmpty()) {
+            ErrorBox(state.error)
         }
         Spacer(modifier = Modifier.weight(1.0f))
         Column(
@@ -126,20 +111,12 @@ fun AvatarScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 text = "Continue",
-                loading = avatarState == AuthViewModel.AvatarState.Loading,
-                disabled = !selected,
+                loading = state.loading,
+                disabled = !state.selected,
                 onClick = {
-                    authViewModel.uploadAvatar(AuthPreferences.getUserID()!!, selectedImageUri!!)
+                    avatarViewModel.onEvent(AvatarFormEvent.Submit)
                 }
             )
-        }
-    }
-    LaunchedEffect(avatarState) {
-        when (avatarState) {
-            is AuthViewModel.AvatarState.Success -> {
-                AvatarPreferences.setExists(true);
-                navController.navigate(Screen.Home.route)
-            } else -> { }
         }
     }
 }

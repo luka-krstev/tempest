@@ -1,19 +1,13 @@
 package com.elfak.tempest.presentation.register
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,100 +16,66 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.presentation.shared.components.Button
-import com.elfak.tempest.presentation.shared.components.ErrorBox
 import com.elfak.tempest.presentation.shared.components.Input
 import com.elfak.tempest.presentation.shared.components.Title
-import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
-import com.elfak.tempest.presentation.shared.validators.Validators
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
-
-fun validate(username: String, name: String, phone: String, email: String, password: String): Boolean {
-    if (!Validators.isLengthBetween(username, 4, 64)) return false
-    if (!Validators.isPhoneNumber(phone)) return false
-    if (!Validators.isLengthBetween(name, 4, 64)) return false
-    if (!Validators.isEmail(email)) return false
-    if (!Validators.isLengthBetween(password, 8, 32)) return false
-
-    return true
-}
 
 @Composable
 fun RegisterScreen(navController: NavController) {
-    var username by rememberSaveable { mutableStateOf("") }
-    var name by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
-    val valid by remember {
-        derivedStateOf { validate(username, name, phone, email, password) }
-    }
+    val registerViewModel = viewModel<RegisterViewModel>()
+    val state = registerViewModel.state
 
-    val authViewModel = viewModel<AuthViewModel>()
-    val authState = authViewModel.state
+    if (state.success) {
+        navController.navigate(Screen.Avatar.route)
+    }
 
     Column(
         modifier = Modifier
             .padding(24.dp)
             .padding(top = 24.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         Title(
             title = "Welcome to Tempest",
-            description = "Join Tempest to monitor, manage, and optimize your fiber optic network with ease."
+            description = "Join Tempest to effortlessly manage and optimize your fiber optic network."
         )
         Spacer(modifier = Modifier.height(28.dp))
-        AnimatedVisibility(authState is AuthViewModel.AuthState.Error) {
-            if (authState is AuthViewModel.AuthState.Error) {
-                ErrorBox(authState.message)
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
         Column {
-            Input(value = username, label = "Username") {
-                username = it
+            Input(value = state.username, label = "Username", error = state.usernameError) {
+                registerViewModel.onEvent(RegisterFormEvent.UsernameChanged(it))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Input(value = name, label = "Full name") {
-                name = it
+            Spacer(modifier = Modifier.height(16.dp))
+            Input(value = state.fullName, label = "Full name", error = state.fullNameError) {
+                registerViewModel.onEvent(RegisterFormEvent.FullNameChanged(it))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Input(value = phone, label = "Phone") {
-                phone = it
+            Spacer(modifier = Modifier.height(16.dp))
+            Input(value = state.phone, label = "Phone", error = state.phoneError) {
+                registerViewModel.onEvent(RegisterFormEvent.PhoneChanged(it))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Input(value = email, label = "Email") {
-                email = it
+            Spacer(modifier = Modifier.height(16.dp))
+            Input(value = state.email, label = "Email", error = state.emailError) {
+                registerViewModel.onEvent(RegisterFormEvent.EmailChanged(it))
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Input(value = password, label = "Password", type = "password") {
-                password = it
+            Spacer(modifier = Modifier.height(16.dp))
+            Input(value = state.password, label = "Password", type = "password", error = state.passwordError) {
+                registerViewModel.onEvent(RegisterFormEvent.PasswordChanged(it))
             }
         }
         Spacer(modifier = Modifier.weight(1.0f))
+        Spacer(modifier = Modifier.height(8.dp))
+
         Column {
             Button(
                 text = "Register",
-                disabled = !valid,
-                loading = authState == AuthViewModel.AuthState.Loading,
+                loading = state.loading,
                 onClick = {
-                    authViewModel.signUp(email, password, phone, name, username)
-                    AvatarPreferences.setExists(false);
-                    navController.navigate(Screen.Avatar.route)
+                    registerViewModel.onEvent(RegisterFormEvent.Submit)
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(text = "Already have an Account?", type="secondary", onClick = {
                 navController.navigate(Screen.Login.route)
             })
-        }
-    }
-
-    LaunchedEffect(authState) {
-        when (authState) {
-            is AuthViewModel.AuthState.Success -> {
-                navController.navigate(Screen.Avatar.route)
-            }
-            else -> { }
         }
     }
 }

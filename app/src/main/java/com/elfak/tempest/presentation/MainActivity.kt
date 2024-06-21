@@ -13,10 +13,14 @@ import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.navigation.SetupNavGraph
 import com.elfak.tempest.presentation.shared.preferences.AuthPreferences
 import com.elfak.tempest.presentation.shared.preferences.AvatarPreferences
+import com.elfak.tempest.repository.AuthRepository
+import com.elfak.tempest.repository.UserRepository
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
+    private val authRepository = AuthRepository()
+    private val userRepository = UserRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,14 +30,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             navController = rememberNavController()
-            val userID = AuthPreferences.getUserID()
-            if (userID != null) {
-                val avatar = AvatarPreferences.getExists()
-                if (!avatar) {
-                    SetupNavGraph(navController = navController, startDestination = Screen.Avatar.route)
-                } else {
-                    SetupNavGraph(navController = navController, startDestination = Screen.Home.route)
-                }
+            val user = authRepository.current()
+            if (user != null) {
+                SetupNavGraph(navController = navController, startDestination = Screen.Avatar.route)
             } else {
                 SetupNavGraph(navController = navController, startDestination = Screen.Login.route)
             }

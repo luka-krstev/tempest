@@ -17,12 +17,7 @@ fun ErrorBox(message: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFECDCA), RoundedCornerShape(12.dp))
-            .border(
-                width = 1.dp,
-                color = Color(0xFFFDA29B),
-                shape = RoundedCornerShape(12.dp)
-            )
+            .background(Color(0xFFFEE4E2), RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
         Text(
