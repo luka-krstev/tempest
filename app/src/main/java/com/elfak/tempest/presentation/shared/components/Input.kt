@@ -1,5 +1,6 @@
 package com.elfak.tempest.presentation.shared.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +21,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Input(label: String = "label", type: String = "text", value: String, onValueChange: (String) -> Unit) {
+fun Input(
+    label: String = "label",
+    type: String = "text",
+    value: String,
+    error: String = "",
+    maxLines: Int = 1,
+    onValueChange: (String) -> Unit
+) {
     var transformation = VisualTransformation.None;
 
     if (type == "password") {
@@ -40,6 +48,7 @@ fun Input(label: String = "label", type: String = "text", value: String, onValue
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
+            maxLines = maxLines,
             visualTransformation = transformation,
             modifier = Modifier
                 .fillMaxWidth()
@@ -50,5 +59,9 @@ fun Input(label: String = "label", type: String = "text", value: String, onValue
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         )
+        Spacer(modifier = Modifier.height(4.dp))
+        AnimatedVisibility(error.isNotEmpty()) {
+            Text(text = error, color = Color(0xFFF04438))
+        }
     }
 }
