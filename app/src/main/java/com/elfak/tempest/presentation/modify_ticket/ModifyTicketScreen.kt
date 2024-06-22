@@ -1,4 +1,4 @@
-package com.elfak.tempest.presentation.user_preview
+package com.elfak.tempest.presentation.modify_ticket
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -7,21 +7,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -30,15 +27,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.elfak.tempest.R
 import com.elfak.tempest.noAnimationClickable
+import com.elfak.tempest.common.components.Button
+import com.elfak.tempest.common.components.Input
+import com.elfak.tempest.common.components.ToggleButtons
 
 @Composable
-fun UserPreviewScreen(navController: NavController, id: String) {
-    val factory = UserPreviewViewModelFactory(id)
-    val userPreviewViewModel = viewModel<UserPreviewViewModel>(factory = factory)
-    val user = userPreviewViewModel.user
+fun ModifyTicketScreen(navController: NavController, latitude: Double, longitude: Double, id: String?) {
+    val options = listOf("Low", "Medium", "High")
+    val factory = ModifyTicketViewModelFactory(id, latitude, longitude)
+    val modifyTicketViewModel = viewModel<ModifyTicketViewModel>(factory = factory)
+
+    LaunchedEffect(modifyTicketViewModel.state.success) {
+        if (modifyTicketViewModel.state.success) {
+            navController.popBackStack()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -71,7 +76,7 @@ fun UserPreviewScreen(navController: NavController, id: String) {
             }
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "Users",
+                text = if (id == null) "Create a new ticket" else "Edit a ticket",
                 style = TextStyle(
                     fontWeight = FontWeight.Bold,
                     fontSize = 24.sp,
@@ -80,70 +85,29 @@ fun UserPreviewScreen(navController: NavController, id: String) {
             )
         }
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(top = 32.dp).fillMaxWidth()
+            modifier = Modifier.padding(0.dp, 24.dp, 0.dp, 0.dp)
         ) {
-            AsyncImage(
-                model = user.avatar,
-                contentDescription = "Selected image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .width(96.dp)
-                    .height(96.dp)
-                    .clip(CircleShape)
-            )
+            ToggleButtons(
+                options = options,
+                selectedOption = modifyTicketViewModel.state.priority
+            ) {
+                modifyTicketViewModel.onEvent(ModifyTicketFormEvent.PriorityChanged(it))
+            }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = user.fullName,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = user.username,
-            )
+            Input(value = modifyTicketViewModel.state.title, label = "Title") {
+                modifyTicketViewModel.onEvent(ModifyTicketFormEvent.TitleChanged(it))
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Input(value = modifyTicketViewModel.state.content, label = "Content", maxLines = 4) {
+                modifyTicketViewModel.onEvent(ModifyTicketFormEvent.ContentChanged(it))
+            }
         }
-        Spacer(modifier = Modifier.height(32.dp))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFFE6E7EA),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(16.dp)
+        Spacer(modifier = Modifier.weight(1f))
+        Button(
+            text = if (id == null) "Create" else "Edit",
+            loading = modifyTicketViewModel.state.loading,
         ) {
-            Text(
-                text = "Email",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF75777C)
-            )
-            Text(
-                text = user.email,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Phone",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF75777C)
-            )
-            Text(
-                text = user.phone,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Points",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF75777C)
-            )
-            Text(
-                text = user.points.toString(),
-                fontSize = 16.sp
-            )
+            modifyTicketViewModel.onEvent(ModifyTicketFormEvent.Submit)
         }
     }
 }

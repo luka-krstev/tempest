@@ -1,4 +1,4 @@
-package com.elfak.tempest.presentation.users
+package com.elfak.tempest.presentation.tickets
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -15,35 +15,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.items
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.elfak.tempest.R
 import com.elfak.tempest.utility.navigation.Screen
 import com.elfak.tempest.noAnimationClickable
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun UsersScreen(navController: NavController) {
-    val usersViewModel = viewModel<UsersViewModel>()
-    val color = Color(0xFF54D490)
+fun TicketsScreen(navController: NavController) {
+    val ticketsViewModel = viewModel<TicketsViewModel>()
 
     LazyColumn(
         modifier = Modifier
@@ -84,7 +79,7 @@ fun UsersScreen(navController: NavController) {
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Text(
-                        text = "Users",
+                        text = "Tickets",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
@@ -92,9 +87,33 @@ fun UsersScreen(navController: NavController) {
                         ),
                     )
                 }
+                Box(
+                    modifier = Modifier
+                        .background(Color.White, shape = RoundedCornerShape(128.dp))
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFFE6E7EA),
+                            shape = RoundedCornerShape(128.dp)
+                        )
+                        .padding(12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.filter),
+                        contentDescription = "Filter",
+                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFF75777C)
+                    )
+                }
             }
         }
-        items(usersViewModel.users) { user ->
+        items(ticketsViewModel.tickets) { ticket ->
+            val priority: Color = when (ticket.priority) {
+                "Low" -> Color(0xFF75777C)
+                "Medium" -> Color(0xFFEDD308)
+                "High" -> Color(0xFFFF5B59)
+                else -> Color(0xFF75777C)
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,48 +125,32 @@ fun UsersScreen(navController: NavController) {
                         shape = RoundedCornerShape(12.dp)
                     )
                     .noAnimationClickable {
-                        navController.navigate(Screen.UserPreview.createRoute(user.id))
+                        navController.navigate(Screen.TicketPreview.createRoute(ticket.id))
                     }
                     .padding(16.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
-                        modifier = Modifier
-                    ) {
-                        AsyncImage(
-                            model = user.avatar,
-                            contentDescription = "Users image",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .width(32.dp)
-                                .height(32.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                text = user.fullName,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = user.username,
-                            )
-                        }
-                    }
                     Text(
-                        text = user.points.toString(),
+                        text = ticket.title,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = ticket.priority,
                         fontWeight = FontWeight.Bold,
-                        color = color,
+                        color = priority,
                         fontSize = 12.sp,
                         modifier = Modifier
-                            .background(color.copy(alpha = 0.2F), shape = RoundedCornerShape(12.dp))
+                            .background(priority.copy(alpha = 0.2F), shape = RoundedCornerShape(12.dp))
                             .padding(10.dp, 4.dp)
                     )
                 }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = ticket.content
+                )
             }
         }
     }

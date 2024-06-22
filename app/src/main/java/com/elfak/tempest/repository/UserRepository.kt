@@ -2,6 +2,7 @@ package com.elfak.tempest.repository
 
 import com.elfak.tempest.model.User
 import com.elfak.tempest.utility.Response
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -11,7 +12,35 @@ import kotlinx.coroutines.flow.callbackFlow
 class UserRepository {
     private val db: FirebaseFirestore by lazy { FirebaseFirestore.getInstance() }
 
-    fun get(email: String): Flow<Response<User?>> = callbackFlow {
+    fun getById(id: String): Flow<Response<User?>> = callbackFlow {
+        trySend(Response.Loading)
+
+        val documentRef = db.collection("users").document(id)
+        val listenerRegistration = documentRef.addSnapshotListener { documentSnapshot, error ->
+            if (error != null) {
+                trySend(Response.Failure(error))
+                return@addSnapshotListener
+            }
+
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                val user = documentSnapshot.toObject(User::class.java)
+                if (user != null) {
+                    trySend(Response.Success(user.copy(id = documentSnapshot.id)))
+                } else {
+                    trySend(Response.Success(null))
+                }
+            } else {
+                trySend(Response.Success(null))
+            }
+        }
+
+        awaitClose {
+            listenerRegistration.remove()
+        }
+    }
+
+
+    fun getByEmail(email: String): Flow<Response<User?>> = callbackFlow {
         trySend(Response.Loading)
 
         val query = db.collection("users").whereEqualTo("email", email)
@@ -80,5 +109,21 @@ class UserRepository {
         }
 
         awaitClose { }
+    }
+
+    fun points(email: String, points: Int, onSuccess: () -> Unit = { }) {
+        val query = db.collection("users").whereEqualTo("email", email).limit(1)
+        query.get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    val documentSnapshot = querySnapshot.documents.first()
+                    val userRef = db.collection("users").document(documentSnapshot.id)
+
+                    userRef.update("points", FieldValue.increment(points.toLong()))
+                        .addOnSuccessListener {
+                            onSuccess()
+                        }
+                }
+            }
     }
 }

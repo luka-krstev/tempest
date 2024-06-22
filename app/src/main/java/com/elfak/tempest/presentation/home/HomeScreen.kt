@@ -1,5 +1,6 @@
 package com.elfak.tempest.presentation.home
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,106 +9,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import android.Manifest
-import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.elfak.tempest.R
+import com.elfak.tempest.common.view_models.AuthViewModel
 import com.elfak.tempest.isServiceRunning
-import com.elfak.tempest.location.NativeLocationClient
-import com.elfak.tempest.location.UserLocation
-import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.shared.view_models.Report
-import com.elfak.tempest.presentation.shared.view_models.ReportViewModel
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
+import com.elfak.tempest.utility.location.NativeLocationClient
+import com.elfak.tempest.utility.navigation.Screen
+import com.elfak.tempest.presentation.home.components.Map
+import com.elfak.tempest.presentation.home.components.Option
+import com.elfak.tempest.presentation.home.components.Pill
+import com.elfak.tempest.presentation.home.components.RoundedButton
 import com.elfak.tempest.services.LocationService
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    val homeViewModel = viewModel<HomeViewModel>()
-    val reportViewModel = viewModel<ReportViewModel>()
-    val authViewModel = viewModel<AuthViewModel>()
-
     val context = LocalContext.current as ComponentActivity
-    val permissionsState = rememberMultiplePermissionsState(
-        permissions = listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.FOREGROUND_SERVICE_LOCATION,
-            Manifest.permission.POST_NOTIFICATIONS,
-        )
-    )
-    var activeUsersLocations by rememberSaveable { mutableStateOf<List<UserLocation>>(emptyList()) }
-    var reportsLocations by remember { mutableStateOf<List<Report>>(emptyList()) }
-    val cameraPositionState = rememberCameraPositionState()
-    var currentLocation by rememberSaveable { mutableStateOf<Pair<Double, Double>?>(null) }
-    var active by rememberSaveable { mutableStateOf(context.isServiceRunning(LocationService::class.java)) }
-    val coroutineScope = rememberCoroutineScope()
     val locationClient = NativeLocationClient(
         context,
         LocationServices.getFusedLocationProviderClient(context)
     )
 
-    LaunchedEffect(permissionsState.allPermissionsGranted) {
-        if (permissionsState.allPermissionsGranted) {
-            locationClient.getLocationUpdates(1000L)
-                .catch { exception -> exception.printStackTrace() }
-                .onEach { location ->
-                    val latitude = location.latitude
-                    val longitude = location.longitude
-                    if (currentLocation == null) {
-                        cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                            LatLng(latitude, longitude), 16f
-                        )
-                    }
-                    currentLocation = Pair(latitude, longitude)
-                }
-                .launchIn(coroutineScope)
-        }
+    val factory = remember {
+        HomeViewModelFactory(
+            locationClient,
+            context.isServiceRunning(LocationService::class.java)
+        )
     }
-
-    LaunchedEffect(Unit) {
-        permissionsState.launchMultiplePermissionRequest()
-        locationClient.getActiveUserLocations()
-            .catch { exception -> exception.printStackTrace() }
-            .onEach { locations ->
-                activeUsersLocations = locations
-            }
-            .launchIn(coroutineScope)
-
-        reportViewModel.fetchAllReports()
-            .catch { exception -> exception.printStackTrace() }
-            .onEach { reports ->
-                reportsLocations = reports
-            }
-            .launchIn(coroutineScope)
-    }
+    val authViewModel = viewModel<AuthViewModel>()
+    val homeViewModel = viewModel<HomeViewModel>(factory = factory)
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -115,68 +53,21 @@ fun HomeScreen(navController: NavController) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                properties = homeViewModel.state.properties,
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = false,
-                    compassEnabled = false,
-                    mapToolbarEnabled = false,
-                ),
-                cameraPositionState = cameraPositionState
-            ) {
-                currentLocation?.let { location ->
-                    Dot(
-                        position = LatLng(location.first, location.second),
-                        color = Color(0xFF54D490)
-                    ) {
-                        authViewModel.getCurrentUserId()?.let {
-                            navController.navigate(Screen.UserPreview.createRoute(it))
-                        }
-                    }
-                }
-                activeUsersLocations.forEach { userLocation ->
-                    Dot(
-                        position = LatLng(userLocation.latitude, userLocation.longitude),
-                        color = Color(0xFF266DF0)
-                    ) {
-                        navController.navigate(Screen.UserPreview.createRoute(userLocation.id))
-                    }
-                }
-                reportsLocations.forEach { reportLocation ->
-                    val color: Color = when (reportLocation.priority) {
-                        "Low" -> {
-                            Color(0xFF75777C)
-                        }
-                        "Medium" -> {
-                            Color(0xFFEDD308)
-                        }
-                        "High" -> {
-                            Color(0xFFFF5B59)
-                        }
-                        else -> {
-                            Color(0xFF75777C)
-                        }
-                    }
-                    if (!reportLocation.solved) {
-                        Dot(
-                            position = LatLng(reportLocation.latitude.toDouble(),
-                                reportLocation.longitude.toDouble()
-                            ),
-                            color = color
-                        ) {
-                            navController.navigate(Screen.ReportPreview.createRoute(reportLocation.id))
-                        }
-                    }
-                }
-            }
+            Map(
+                properties = homeViewModel.maps.properties,
+                camera = homeViewModel.camera,
+                currentLocation = homeViewModel.current,
+                navController = navController,
+                tickets = homeViewModel.tickets,
+                users = homeViewModel.users
+            )
             Column(
                 modifier = Modifier
                     .padding(16.dp)
                     .padding(0.dp, 16.dp, 0.dp, 0.dp)
             ) {
-                Pill(text = "Reports") {
-                    navController.navigate(Screen.AllReports.route)
+                Pill(text = "Tickets") {
+                    navController.navigate(Screen.Tickets.route)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Pill(text = "Users") {
@@ -187,9 +78,8 @@ fun HomeScreen(navController: NavController) {
                     description = "Exit",
                     icon = R.drawable.exit,
                 ) {
-                    authViewModel.signOut {
-                        navController.navigate(Screen.Login.route)
-                    }
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route)
                 }
             }
             Column(
@@ -209,9 +99,9 @@ fun HomeScreen(navController: NavController) {
                         description = "Create new note",
                         icon = R.drawable.note,
                     ) {
-                        currentLocation?.let {
+                        homeViewModel.current?.let {
                             navController.navigate(
-                                Screen.Report.createRoute(
+                                Screen.ModifyTicket.createRoute(
                                     it.first,
                                     it.second
                                 )
@@ -220,27 +110,29 @@ fun HomeScreen(navController: NavController) {
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     RoundedButton(
-                        active = active
+                        active = homeViewModel.service
                     ) {
-                        if (active) {
-                            Intent(context, LocationService::class.java).apply {
-                                action = LocationService.ACTION_STOP
-                                context.startService(this)
-                            }
-                        } else {
-                            Intent(context, LocationService::class.java).apply {
-                                action = LocationService.ACTION_START
-                                context.startService(this)
-                            }
-                        }
-
-                        active = !active
+                        homeViewModel.toggleService(
+                            active = {
+                                Intent(context, LocationService::class.java).apply {
+                                    action = LocationService.ACTION_STOP
+                                    context.startService(this)
+                                }
+                            },
+                            inactive = {
+                                Intent(context, LocationService::class.java).apply {
+                                    action = LocationService.ACTION_START
+                                    context.startService(this)
+                                }
+                            },
+                        )
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 @Preview(showBackground = true)

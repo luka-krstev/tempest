@@ -7,27 +7,32 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.shared.components.Button
-import com.elfak.tempest.presentation.shared.components.ErrorBox
-import com.elfak.tempest.presentation.shared.components.Input
-import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.utility.navigation.Screen
+import com.elfak.tempest.common.components.Button
+import com.elfak.tempest.common.components.ErrorBox
+import com.elfak.tempest.common.components.Input
+import com.elfak.tempest.common.components.Title
+import com.elfak.tempest.presentation.login.components.RequestPermissions
 
 @Composable
 fun LoginScreen(navController: NavController) {
     val loginViewModel = viewModel<LoginViewModel>()
     val state = loginViewModel.state
 
-    if (state.success) {
-        navController.navigate(Screen.Home.route)
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            navController.navigate(Screen.Home.route)
+        }
     }
 
+    RequestPermissions()
     Column(
         modifier = Modifier
             .padding(24.dp)
