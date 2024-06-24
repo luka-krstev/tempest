@@ -10,9 +10,11 @@ class Tempest: Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val channel = NotificationChannel("location", "Location", NotificationManager.IMPORTANCE_LOW)
+        val location = NotificationChannel("location", "Location", NotificationManager.IMPORTANCE_HIGH)
+        val tickets = NotificationChannel("tickets", "tickets", NotificationManager.IMPORTANCE_HIGH)
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+        notificationManager.createNotificationChannel(location)
+        notificationManager.createNotificationChannel(tickets)
         FirebaseApp.initializeApp(this)
     }
 }

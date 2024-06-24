@@ -123,11 +123,11 @@ class HomeViewModel(
         active: () -> Unit,
         inactive: () -> Unit,
     ) {
-        service = !service
         if (service) {
             active()
         } else {
             inactive()
         }
+        service = !service
     }
 }
