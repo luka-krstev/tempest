@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.elfak.tempest.utility.location.NativeLocationClient
 import com.elfak.tempest.model.Ticket
 import com.elfak.tempest.model.User
+import com.elfak.tempest.presentation.filter.FilterState
 import com.elfak.tempest.repository.AuthRepository
 import com.elfak.tempest.repository.TicketRepository
 import com.elfak.tempest.repository.UserRepository
@@ -27,6 +28,8 @@ class HomeViewModel(
     private val ticketRepository = TicketRepository()
     private val userRepository = UserRepository()
     private val authRepository = AuthRepository()
+
+    var filter = FilterState()
 
     var maps: MapState by mutableStateOf(MapState())
         private set
@@ -52,8 +55,13 @@ class HomeViewModel(
         loadUsers()
     }
 
+    fun filter(filter: FilterState) {
+        this.filter = filter
+        loadTickets()
+    }
+
     private fun loadTickets() {
-        ticketRepository.get()
+        ticketRepository.get(filter, current)
             .catch { exception -> exception.printStackTrace() }
             .onEach { response ->
                 when(response) {
@@ -106,6 +114,7 @@ class HomeViewModel(
                     )
                 }
                 current = Pair(location.latitude, location.longitude)
+                loadTickets()
             }
             .launchIn(viewModelScope)
     }

@@ -29,16 +29,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.elfak.tempest.R
 import com.elfak.tempest.utility.navigation.Screen
 import com.elfak.tempest.noAnimationClickable
+import com.elfak.tempest.presentation.filter.FilterViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TicketsScreen(navController: NavController) {
-    val ticketsViewModel = viewModel<TicketsViewModel>()
+fun TicketsScreen(
+    navController: NavController,
+    filterViewModel: FilterViewModel,
+    location: Pair<Double, Double>?
+) {
+    val factory = remember { TicketsViewModelFactory(location) }
+    val ticketsViewModel = viewModel<TicketsViewModel>(factory = factory)
+
+    LaunchedEffect(filterViewModel.state) {
+        ticketsViewModel.filter(filterViewModel.state)
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -100,7 +112,11 @@ fun TicketsScreen(navController: NavController) {
                     Icon(
                         painter = painterResource(id = R.drawable.filter),
                         contentDescription = "Filter",
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier
+                            .size(16.dp)
+                            .noAnimationClickable {
+                                navController.navigate(Screen.Filters.route)
+                            },
                         tint = Color(0xFF75777C)
                     )
                 }
@@ -143,7 +159,10 @@ fun TicketsScreen(navController: NavController) {
                         color = priority,
                         fontSize = 12.sp,
                         modifier = Modifier
-                            .background(priority.copy(alpha = 0.2F), shape = RoundedCornerShape(12.dp))
+                            .background(
+                                priority.copy(alpha = 0.2F),
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .padding(10.dp, 4.dp)
                     )
                 }

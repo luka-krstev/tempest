@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class TicketPreviewViewModel: ViewModel() {
+class TicketPreviewViewModel(
+    private val id: String
+): ViewModel() {
     private val ticketRepository = TicketRepository()
 
     var ticket by mutableStateOf(Ticket())
@@ -22,12 +24,14 @@ class TicketPreviewViewModel: ViewModel() {
     }
 
     private fun load() {
-        ticketRepository.get()
+        ticketRepository.get(id)
             .catch { exception -> exception.printStackTrace() }
             .onEach { response ->
                 when(response) {
                     is Response.Success -> {
-                        ticket = response.data.first()
+                        response.data?.let{
+                            ticket = it
+                        }
                     }
                     else -> { }
                 }

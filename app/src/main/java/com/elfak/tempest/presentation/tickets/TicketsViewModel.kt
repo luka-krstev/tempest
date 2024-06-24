@@ -6,15 +6,19 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elfak.tempest.model.Ticket
+import com.elfak.tempest.presentation.filter.FilterState
 import com.elfak.tempest.repository.TicketRepository
 import com.elfak.tempest.utility.Response
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
-class TicketsViewModel: ViewModel() {
+class TicketsViewModel(
+    private val location: Pair<Double, Double>?
+): ViewModel() {
     private val ticketRepository = TicketRepository()
 
+    var filter = FilterState()
     var tickets by mutableStateOf<List<Ticket>>(emptyList())
 
     init {
@@ -22,7 +26,7 @@ class TicketsViewModel: ViewModel() {
     }
 
     private fun load() {
-        ticketRepository.get()
+        ticketRepository.get(filter, location)
             .catch { exception -> exception.printStackTrace() }
             .onEach { response ->
                 when(response) {
@@ -33,5 +37,10 @@ class TicketsViewModel: ViewModel() {
                 }
             }
             .launchIn(viewModelScope)
+    }
+
+    fun filter(filter: FilterState) {
+        this.filter = filter
+        load()
     }
 }

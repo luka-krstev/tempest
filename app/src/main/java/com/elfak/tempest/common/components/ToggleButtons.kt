@@ -3,9 +3,7 @@ package com.elfak.tempest.common.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -13,10 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -32,7 +26,8 @@ import com.elfak.tempest.noAnimationClickable
 fun ToggleButtons(
     options: List<String>,
     selectedOption: String,
-    onSelectionChange: (String) -> Unit
+    onSelectionChange: (String) -> Unit,
+    allowEmpty: Boolean = false,
 ) {
     val firstItemShape: CornerBasedShape = RoundedCornerShape(
         topStart = 12.dp, topEnd = 0.dp,
@@ -74,7 +69,11 @@ fun ToggleButtons(
                         .weight(1f)
                         .clip(shape)
                         .noAnimationClickable {
-                            onSelectionChange(text)
+                            if (selectedOption == text && allowEmpty) {
+                                onSelectionChange("")
+                            } else {
+                                onSelectionChange(text)
+                            }
                         }
                         .background(Color(0xFFEEEFF1))
                         .padding(
