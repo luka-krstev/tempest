@@ -49,11 +49,12 @@ class AvatarViewModel: ViewModel() {
                             state = state.copy(error = "Something went wrong.", loading = false)
                         }
                         is Response.Success -> {
-                            user.email?.let { it1 ->
-                                userRepository.get(it1).collect { inner ->
+                            user.email?.let { user ->
+                                userRepository.getByEmail(user).collect { inner ->
                                     when (inner) {
                                         is Response.Success -> {
                                             inner.data?.let {
+                                                it.avatar = response.data.toString()
                                                 userRepository.save(it).collect { final ->
                                                     state = when (final) {
                                                         is Response.Success -> {

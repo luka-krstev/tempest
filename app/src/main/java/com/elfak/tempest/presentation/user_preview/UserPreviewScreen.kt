@@ -17,11 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,26 +32,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.elfak.tempest.R
-import com.elfak.tempest.navigation.Screen
 import com.elfak.tempest.noAnimationClickable
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
-import com.elfak.tempest.presentation.shared.view_models.Report
-import com.elfak.tempest.presentation.shared.view_models.ReportViewModel
-import com.elfak.tempest.presentation.shared.view_models.User
 
 @Composable
-fun UserPreviewScreen(navController: NavController, uid: String) {
-    val authViewModel = viewModel<AuthViewModel>()
-    var user by remember { mutableStateOf<User>(User()) }
-
-    LaunchedEffect(Unit) {
-        authViewModel.getUserById(uid) {
-            if (it != null) {
-                user = it
-            }
-        }
-    }
-
+fun UserPreviewScreen(navController: NavController, id: String) {
+    val factory = UserPreviewViewModelFactory(id)
+    val userPreviewViewModel = viewModel<UserPreviewViewModel>(factory = factory)
+    val user = userPreviewViewModel.user
 
     Column(
         modifier = Modifier
@@ -112,7 +94,7 @@ fun UserPreviewScreen(navController: NavController, uid: String) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = user.name,
+                text = user.fullName,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

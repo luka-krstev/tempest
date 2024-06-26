@@ -1,21 +1,26 @@
 package com.elfak.tempest.services
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.IBinder
-import androidx.compose.ui.graphics.Color
+import android.net.Uri
+import android.os.Binder
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.PRIORITY_MAX
+import androidx.core.app.NotificationManagerCompat
 import com.elfak.tempest.R
-import com.elfak.tempest.location.LocationClient
-import com.elfak.tempest.location.NativeLocationClient
-import com.elfak.tempest.presentation.MainActivity
+import com.elfak.tempest.model.Ticket
+import com.elfak.tempest.model.User
+import com.elfak.tempest.presentation.filter.FilterState
+import com.elfak.tempest.repository.AuthRepository
+import com.elfak.tempest.repository.TicketRepository
+import com.elfak.tempest.repository.UserRepository
+import com.elfak.tempest.utility.Response
+import com.elfak.tempest.utility.location.LocationClient
+import com.elfak.tempest.utility.location.NativeLocationClient
 import com.google.android.gms.location.LocationServices
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,16 +28,134 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 class LocationService : Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var locationClient: LocationClient
-    private val firestore by lazy { FirebaseFirestore.getInstance() }
-    private val firebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private lateinit var userId: String
+    private val ticketRepository = TicketRepository()
+    private val userRepository = UserRepository()
+    private val authRepository = AuthRepository()
+    private var notified: List<Ticket> = emptyList()
+    private var user: User? = null
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    private fun start() {
+        val notification = NotificationCompat.Builder(this, "location")
+            .setContentTitle("Tracking location...")
+            .setContentText("Location: null")
+            .setSmallIcon(R.drawable.ic_stat)
+            .setOngoing(true)
+
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        locationClient
+            .getLocationUpdates(1000L)
+            .catch { exception -> exception.printStackTrace() }
+            .onEach { location ->
+                val updated = notification.setContentText(
+                    "Location: (${location.latitude}, ${location.longitude}"
+                )
+
+                user?.let {
+                    updateUser(
+                        location.latitude,
+                        location.longitude,
+                        true
+                    )
+
+                    fetchTickets(location.latitude, location.longitude)
+                }
+
+                manager.notify(1, updated.build())
+            }
+            .launchIn(serviceScope)
+
+        startForeground(1, notification.build())
+    }
+
+    private fun stop() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        updateUser(0.0, 0.0, false)
+        stopSelf()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun notifyUser(ticket: Ticket) {
+        val deepLink = Uri.parse("app://tempest/ticket_preview_screen/${ticket.id}")
+        val intent = Intent(Intent.ACTION_VIEW, deepLink).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(this, "tickets")
+            .setSmallIcon(R.drawable.ic_stat)
+            .setContentTitle(ticket.title)
+            .setContentText(ticket.content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        with(NotificationManagerCompat.from(this)) {
+            notify(ticket.id.hashCode(), builder.build())
+        }
+    }
+
+    private fun fetchTickets(latitude: Double, longitude: Double) {
+        var filter = FilterState()
+        filter = filter.copy(radius = 1000)
+
+        serviceScope.launch {
+            ticketRepository
+                .get(filter, Pair(latitude, longitude))
+                .collect { response ->
+                    when (response) {
+                        is Response.Success -> {
+                            response.data.forEach { ticket ->
+                                if (!notified.contains(ticket)) {
+                                    notified += ticket
+                                    notifyUser(ticket)
+                                }
+                            }
+                        }
+                        is Response.Failure -> {
+                            response.message
+                        }
+                        else -> { }
+                    }
+                }
+        }
+    }
+
+    private fun updateUser(latitude: Double, longitude: Double, service: Boolean) {
+        user?.let {
+            user = it.copy(
+                latitude = latitude,
+                longitude = longitude,
+                service = service
+            )
+
+            serviceScope.launch {
+                userRepository
+                    .save(it)
+                    .collect { response ->
+                        when (response) {
+                            is Response.Failure -> {
+                                response.message.printStackTrace()
+                            }
+
+                            else -> {}
+                        }
+                    }
+            }
+        }
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_START -> start()
+            ACTION_STOP -> stop()
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onCreate() {
@@ -41,89 +164,39 @@ class LocationService : Service() {
             applicationContext,
             LocationServices.getFusedLocationProviderClient(applicationContext)
         )
-        userId = firebaseAuth.currentUser?.uid ?: "unknown_user"
-        updateServiceStatus(true)
-    }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when(intent?.action) {
-            ACTION_START -> start()
-            ACTION_STOP -> stop()
+        val current = authRepository.current()
+        current?.let {
+            it.email?.let { email ->
+                serviceScope.launch {
+                    userRepository
+                        .getByEmail(email)
+                        .collect { response ->
+                            when (response) {
+                                is Response.Success -> {
+                                    response.data?.let { data ->
+                                        user = data
+                                    }
+                                }
+                                is Response.Failure -> {
+                                    response.message
+                                }
+                                else -> { }
+                            }
+                        }
+                }
+            }
         }
-        return super.onStartCommand(intent, flags, startId)
     }
-
-    private fun start() {
-        val intent = Intent(applicationContext, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            applicationContext,
-            0,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat
-            .Builder(this, "location")
-            .setContentTitle("Tracking location...")
-            .setContentText("Location: null")
-            .setSmallIcon(R.drawable.ic_stat)
-            .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
-            .setPriority(PRIORITY_MAX)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        locationClient
-            .getLocationUpdates(1000L)
-            .catch { exception -> exception.printStackTrace() }
-            .onEach { location ->
-                val latitude = location.latitude
-                val longitude = location.longitude
-
-                val updated = notification.setContentText(
-                    "Location: ($latitude, $longitude)"
-                )
-
-                notificationManager.notify(1, updated.build())
-
-                val locationData = mapOf(
-                    "latitude" to latitude,
-                    "longitude" to longitude,
-                    "timestamp" to System.currentTimeMillis()
-                )
-
-                firestore.collection("users").document(userId)
-                    .update(locationData)
-                    .addOnFailureListener { e ->
-                        e.printStackTrace()
-                    }
-            }
-            .launchIn(serviceScope)
-
-        startForeground(1, notification.build())
-    }
-
-    private fun stop() {
-        stopForeground(STOP_FOREGROUND_DETACH)
-        stopSelf()
-    }
-
-    private fun updateServiceStatus(isActive: Boolean) {
-        val statusData = mapOf("serviceActive" to isActive)
-        firestore.collection("users").document(userId)
-            .update(statusData)
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-            }
-    }
-
 
     override fun onDestroy() {
-        super.onDestroy()
-        updateServiceStatus(false)
+        updateUser(0.0, 0.0, false)
         serviceScope.cancel()
+        super.onDestroy()
+    }
+
+    override fun onBind(intent: Intent?): Binder? {
+        return null
     }
 
     companion object {

@@ -8,24 +8,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.shared.components.Button
-import com.elfak.tempest.presentation.shared.components.Input
-import com.elfak.tempest.presentation.shared.components.Title
+import com.elfak.tempest.utility.navigation.Screen
+import com.elfak.tempest.common.components.Button
+import com.elfak.tempest.common.components.Input
+import com.elfak.tempest.common.components.Title
 
 @Composable
 fun RegisterScreen(navController: NavController) {
     val registerViewModel = viewModel<RegisterViewModel>()
     val state = registerViewModel.state
 
-    if (state.success) {
-        navController.navigate(Screen.Avatar.route)
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            navController.navigate(Screen.Avatar.route)
+        }
     }
 
     Column(

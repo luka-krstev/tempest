@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,17 +29,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.elfak.tempest.presentation.shared.components.Button
-import com.elfak.tempest.navigation.Screen
-import com.elfak.tempest.presentation.shared.components.ErrorBox
+import com.elfak.tempest.common.components.Button
+import com.elfak.tempest.utility.navigation.Screen
+import com.elfak.tempest.common.components.ErrorBox
 
 @Composable
 fun AvatarScreen(navController: NavController) {
     val avatarViewModel = viewModel<AvatarViewModel>()
     val state = avatarViewModel.state
 
-    if (state.success) {
-        navController.navigate(Screen.Home.route)
+    LaunchedEffect(state.success) {
+        if (state.success) {
+            navController.navigate(Screen.Home.route)
+        }
     }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(

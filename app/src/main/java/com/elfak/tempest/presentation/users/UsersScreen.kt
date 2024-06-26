@@ -21,11 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,25 +36,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.elfak.tempest.R
-import com.elfak.tempest.navigation.Screen
+import com.elfak.tempest.utility.navigation.Screen
 import com.elfak.tempest.noAnimationClickable
-import com.elfak.tempest.presentation.shared.view_models.AuthViewModel
-import com.elfak.tempest.presentation.shared.view_models.Report
-import com.elfak.tempest.presentation.shared.view_models.ReportViewModel
-import com.elfak.tempest.presentation.shared.view_models.User
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UsersScreen(navController: NavController) {
-    val authViewModel = viewModel<AuthViewModel>()
-    var users by remember { mutableStateOf<List<User>>(emptyList()) }
+    val usersViewModel = viewModel<UsersViewModel>()
     val color = Color(0xFF54D490)
-
-    LaunchedEffect(Unit) {
-        authViewModel.getUsers {
-            users = it
-        }
-    }
 
     LazyColumn(
         modifier = Modifier
@@ -110,7 +94,7 @@ fun UsersScreen(navController: NavController) {
                 }
             }
         }
-        items(users) { user ->
+        items(usersViewModel.users) { user ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -146,7 +130,7 @@ fun UsersScreen(navController: NavController) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(
-                                text = user.name,
+                                text = user.fullName,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(

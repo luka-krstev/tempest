@@ -77,4 +77,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.maps.compose)
     implementation(libs.accompanist.permissions)
+    implementation(libs.core)
+    implementation(libs.date.time)
 }
