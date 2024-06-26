@@ -2,9 +2,11 @@ package com.elfak.tempest.services
 
 import android.annotation.SuppressLint
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Binder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -79,11 +81,19 @@ class LocationService : Service() {
 
     @SuppressLint("MissingPermission")
     private fun notifyUser(ticket: Ticket) {
+        val deepLink = Uri.parse("app://tempest/ticket_preview_screen/${ticket.id}")
+        val intent = Intent(Intent.ACTION_VIEW, deepLink).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
         val builder = NotificationCompat.Builder(this, "tickets")
             .setSmallIcon(R.drawable.ic_stat)
             .setContentTitle(ticket.title)
             .setContentText(ticket.content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(this)) {
             notify(ticket.id.hashCode(), builder.build())

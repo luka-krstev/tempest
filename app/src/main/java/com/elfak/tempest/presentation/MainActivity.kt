@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             navController = rememberNavController()
+
             val user = authRepository.current()
             if (user != null) {
                 SetupNavGraph(navController = navController, startDestination = Screen.Home.route)

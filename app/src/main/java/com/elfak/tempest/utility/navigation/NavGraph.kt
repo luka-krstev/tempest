@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.elfak.tempest.presentation.avatar.AvatarScreen
 import com.elfak.tempest.presentation.filter.FilterScreen
 import com.elfak.tempest.presentation.filter.FilterViewModel
@@ -275,6 +276,7 @@ fun SetupNavGraph(
         }
         composable(
             route = Screen.TicketPreview.route,
+            deepLinks = listOf(navDeepLink { uriPattern = "app://tempest/ticket_preview_screen/{id}" }),
             arguments = listOf(
                 navArgument("id") { type = NavType.StringType },
             ),
